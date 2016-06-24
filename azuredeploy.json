@@ -66,428 +66,429 @@
       "maxValue": 10,
       "metadata": {
         "description": "Number of VM instances to be created behind internal load balancer control"
+      }
+    },
+    "vmNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "String to prefix the generation of the VM Name"
+      }
+    },
+    "workspaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The Workspace ID is the Operations Management Suite Workspace ID found in the OMS Console under Settings and Connected Sources"
+      }
+    },
+    "workspaceKey": {
+      "type": "string",
+      "metadata": {
+        "description": "The Workspace Key is the Operations Management Suite Workspace Key found in the OMS Console under Settings and Connected Sources"
+      }
+    },
+    "modulesUrl": {
+      "type": "string",
+      "defaultValue": "https://github.com/Azure/azure-quickstart-templates/raw/master/dsc-extension-azure-automation-pullserver/UpdateLCMforAAPull.zip",
+      "metadata": {
+        "description": "URL for the DSC configuration package. NOTE: Can be a Github url(raw) to the zip file (this is the default value)"
+      }
+    },
+    "configurationFunction": {
+      "type": "string",
+      "defaultValue": "UpdateLCMforAAPull.ps1\\ConfigureLCMforAAPull",
+      "metadata": {
+        "description": "DSC configuration function to call. Should contain filename and function in format fileName.ps1\\configurationfunction"
+      }
+    },
+    "registrationKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Registration key to use to onboard to the Azure Automation DSC pull/reporting server"
+      }
+    },
+    "registrationUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Registration url of the Azure Automation DSC pull/reporting server"
+      }
+    },
+    "nodeConfigurationName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the node configuration, on the Azure Automation DSC pull server, that this node will be configured as"
+      }
+    },
+    "configurationMode": {
+      "type": "string",
+      "defaultValue": "ApplyAndAutoCorrect",
+      "allowedValues": [
+        "ApplyOnly",
+        "ApplyAndMonitor",
+        "ApplyAndAutoCorrect"
+      ],
+      "metadata": {
+        "description": "DSC agent (LCM) configuration mode setting. ApplyOnly, ApplyAndMonitor, or ApplyAndAutoCorrect"
+      }
+    },
+    "configurationModeFrequencyMins": {
+      "type": "int",
+      "defaultValue": 15,
+      "metadata": {
+        "description": "DSC agent (LCM) configuration mode frequency setting, in minutes"
+      }
+    },
+    "refreshFrequencyMins": {
+      "type": "int",
+      "defaultValue": 30,
+      "metadata": {
+        "description": "DSC agent (LCM) refresh frequency setting, in minutes"
+      }
+    },
+    "rebootNodeIfNeeded": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "DSC agent (LCM) rebootNodeIfNeeded setting"
+      }
+    },
+    "actionAfterReboot": {
+      "type": "string",
+      "defaultValue": "ContinueConfiguration",
+      "allowedValues": [
+        "ContinueConfiguration",
+        "StopConfiguration"
+      ],
+      "metadata": {
+        "description": "DSC agent (LCM) actionAfterReboot setting. ContinueConfiguration or StopConfiguration"
+      }
+    },
+    "allowModuleOverwrite": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "DSC agent (LCM) allowModuleOverwrite setting"
+      }
+    },
+    "domainToJoin": {
+      "type": "string",
+      "metadata": {
+        "description": "FQDN of Active Directory Domain to Join"
+      }
+    },
+    "OUPath": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "LDAP-compatible OU string for Computer Object to be created"
+      }
+    },
+    "domainUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "UserID of user used to join computer to the domain"
+      }
+    },
+      "domainPassword": {
+        "type": "securestring"
+      },
+      "domainJoinOptions": {
+        "type": "int",
+        "defaultValue": 3,
+        "metadata": {
+          "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
         }
       },
-      "vmNamePrefix": {
+      "timestamp": {
         "type": "string",
         "metadata": {
-          "description": "String to prefix the generation of the VM Name"
-          }
+          "description": "The current datetime, as a string, to force the request to go through ARM even if all fields are the same as last ARM deployment of this template; example in parameters file is in MM/dd/yyyy H:mm:ss tt format"
+        }
+      }
+    },
+    "variables": {
+      "vmNamePrefix": "[parameters('vmNamePrefix')]",
+      "imagePublisher": "MicrosoftWindowsServer",
+      "imageOffer": "WindowsServer",
+      "vhdStorageType": "Standard_LRS",
+      "vhdStorageName": "[concat('sclab', uniqueString(resourceGroup().id))]",
+      "virtualNetworkName": "SCVNet",
+      "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+      "virtualNetworkSubnetName": "SCLabSubnet",
+      "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
+      "networkInterfaceNamePrefix": "VNic",
+      "VMPriority": "9"
+    },
+    "resources": [
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Storage/storageAccounts",
+        "name": "[variables('vhdStorageName')]",
+        "location": "[resourceGroup().location]",
+        "tags": {
+          "displayName": "StorageAccount"
         },
-        "workspaceId": {
-          "type": "string",
-          "metadata": {
-            "description": "The Workspace ID is the Operations Management Suite Workspace ID found in the OMS Console under Settings and Connected Sources"
-          }
+        "properties": {
+          "accountType": "[variables('vhdStorageType')]"
+        }
+      },
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[variables('virtualNetworkName')]",
+        "location": "[resourceGroup().location]",
+        "tags": {
+          "displayName": "VirtualNetwork"
         },
-        "workspaceKey": {
-          "type": "string",
-          "metadata": {
-            "description": "The Workspace Key is the Operations Management Suite Workspace Key found in the OMS Console under Settings and Connected Sources"
-          }
-        },
-        "modulesUrl": {
-          "type": "string",
-          "defaultValue": "https://github.com/Azure/azure-quickstart-templates/raw/master/dsc-extension-azure-automation-pullserver/UpdateLCMforAAPull.zip",
-          "metadata": {
-            "description": "URL for the DSC configuration package. NOTE: Can be a Github url(raw) to the zip file (this is the default value)"
-          }
-        },
-        "configurationFunction": {
-          "type": "string",
-          "defaultValue": "UpdateLCMforAAPull.ps1\\ConfigureLCMforAAPull",
-          "metadata": {
-            "description": "DSC configuration function to call. Should contain filename and function in format fileName.ps1\\configurationfunction"
-          }
-        },
-        "registrationKey": {
-          "type": "securestring",
-          "metadata": {
-            "description": "Registration key to use to onboard to the Azure Automation DSC pull/reporting server"
-          }
-        },
-        "registrationUrl": {
-          "type": "string",
-          "metadata": {
-            "description": "Registration url of the Azure Automation DSC pull/reporting server"
-          }
-        },
-        "nodeConfigurationName": {
-          "type": "string",
-          "metadata": {
-            "description": "The name of the node configuration, on the Azure Automation DSC pull server, that this node will be configured as"
-          }
-        },
-        "configurationMode": {
-          "type": "string",
-          "defaultValue": "ApplyAndAutoCorrect",
-          "allowedValues": [
-            "ApplyOnly",
-            "ApplyAndMonitor",
-            "ApplyAndAutoCorrect"
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "10.0.1.0/22"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('virtualNetworkSubnetName')]",
+              "properties": {
+                "addressPrefix": "10.0.2.0/24"
+              }
+            }
           ],
-          "metadata": {
-            "description": "DSC agent (LCM) configuration mode setting. ApplyOnly, ApplyAndMonitor, or ApplyAndAutoCorrect"
-          }
-        },
-        "configurationModeFrequencyMins": {
-          "type": "int",
-          "defaultValue": 15,
-          "metadata": {
-            "description": "DSC agent (LCM) configuration mode frequency setting, in minutes"
-          }
-        },
-        "refreshFrequencyMins": {
-          "type": "int",
-          "defaultValue": 30,
-          "metadata": {
-            "description": "DSC agent (LCM) refresh frequency setting, in minutes"
-          }
-        },
-        "rebootNodeIfNeeded": {
-          "type": "bool",
-          "defaultValue": true,
-          "metadata": {
-            "description": "DSC agent (LCM) rebootNodeIfNeeded setting"
-          }
-        },
-        "actionAfterReboot": {
-          "type": "string",
-          "defaultValue": "ContinueConfiguration",
-          "allowedValues": [
-            "ContinueConfiguration",
-            "StopConfiguration"
-          ],
-          "metadata": {
-            "description": "DSC agent (LCM) actionAfterReboot setting. ContinueConfiguration or StopConfiguration"
-          }
-        },
-        "allowModuleOverwrite": {
-          "type": "bool",
-          "defaultValue": false,
-          "metadata": {
-            "description": "DSC agent (LCM) allowModuleOverwrite setting"
-          }
-        },
-        "domainToJoin": {
-          "type": "string",
-          "metadata": {
-            "description": "FQDN of Active Directory Domain to Join"
-          }
-        },
-        "OUPath": {
-          "type": "string",
-          "defaultValue": "",
-          "metadata": {
-            "description": "LDAP-compatible OU string for Computer Object to be created"
-          }
-        },
-        "domainUsername": {
-          "type": "string",
-          "metadata": {
-            "description": "UserID of user used to join computer to the domain"
-          }
-        },
-        "domainPassword": {
-          "type": "securestring"
-        },
-        "domainJoinOptions": {
-          "type": "int",
-          "defaultValue": 3,
-          "metadata": {
-            "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
-          }
-        },
-        "timestamp": {
-          "type": "string",
-          "metadata": {
-            "description": "The current datetime, as a string, to force the request to go through ARM even if all fields are the same as last ARM deployment of this template; example in parameters file is in MM/dd/yyyy H:mm:ss tt format"
+          "dhcpOptions": {
+            "dnsServers": [ "10.0.2.10" ]
           }
         }
       },
-      "variables": {
-        "vmNamePrefix": "[parameters('vmNamePrefix')]",
-        "imagePublisher": "MicrosoftWindowsServer",
-        "imageOffer": "WindowsServer",
-        "vhdStorageType": "Standard_LRS",
-        "vhdStorageName": "[concat('sclab', uniqueString(resourceGroup().id))]",
-        "virtualNetworkName": "SCVNet",
-        "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-        "virtualNetworkSubnetName": "SCLabSubnet",
-        "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
-        "networkInterfaceNamePrefix": "VNic",
-        "VMPriority": "9"
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/networkInterfaces",
+        "name": "[concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex())]",
+        "location": "[resourceGroup().location]",
+        "tags": {
+          "displayName": "NetworkInterface"
+        },
+        "copy": {
+          "name": "nicLoop",
+          "count": "[parameters('numberOfInstances')]"
+        },
+        "dependsOn": [
+          "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "[concat(variables('vmNamePrefix'), 'ipconfig', copyindex())]",
+              "properties": {
+                "privateIPAllocationMethod": "Dynamic",
+                "subnet": {
+                  "id": "[variables('subnetRef')]"
+                }
+              }
+            }
+          ],
+          "dnsSettings": {
+            "dnsServers": [ "10.0.2.10" ]
+          }
+        }
       },
-      "resources": [
-        {
-          "apiVersion": "2015-06-15",
-          "type": "Microsoft.Storage/storageAccounts",
-          "name": "[variables('vhdStorageName')]",
-          "location": "[resourceGroup().location]",
-          "tags": {
-            "displayName": "StorageAccount"
-          },
-          "properties": {
-            "accountType": "[variables('vhdStorageType')]"
-          }
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Compute/virtualMachines",
+        "name": "[concat(variables('vmNamePrefix'), copyindex())]",
+        "copy": {
+          "count": "[parameters('numberOfInstances')]",
+          "name": "virtualMachineLoop"
         },
-        {
-          "apiVersion": "2015-06-15",
-          "type": "Microsoft.Network/virtualNetworks",
-          "name": "[variables('virtualNetworkName')]",
-          "location": "[resourceGroup().location]",
-          "tags": {
-            "displayName": "VirtualNetwork"
-          },
-          "properties": {
-            "addressSpace": {
-              "addressPrefixes": [
-                "10.0.1.0/22"
-              ]
-            },
-            "subnets": [
-              {
-                "name": "[variables('virtualNetworkSubnetName')]",
-                "properties": {
-                  "addressPrefix": "10.0.2.0/24"
-                }
-              }
-            ],
-            "dhcpOptions": {
-              "dnsServers": [ "10.0.2.10" ]
-            }
-          }
+        "location": "[resourceGroup().location]",
+        "tags": {
+          "displayName": "VirtualMachines",
+          "priority": "[variables('VMPriority')]"
         },
-        {
-          "apiVersion": "2015-06-15",
-          "type": "Microsoft.Network/networkInterfaces",
-          "name": "[concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex())]",
-          "location": "[resourceGroup().location]",
-          "tags": {
-            "displayName": "NetworkInterface"
+        "dependsOn": [
+          "[concat('Microsoft.Storage/storageAccounts/', variables('vhdStorageName'))]",
+          "nicLoop"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[parameters('vmSize')]"
           },
-          "copy": {
-            "name": "nicLoop",
-            "count": "[parameters('numberOfInstances')]"
+          "osProfile": {
+            "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPassword')]"
           },
-          "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-          ],
-          "properties": {
-            "ipConfigurations": [
-              {
-                "name": "[concat(variables('vmNamePrefix'), 'ipconfig', copyindex())]",
-                "properties": {
-                  "privateIPAllocationMethod": "Dynamic",
-                  "subnet": {
-                    "id": "[variables('subnetRef')]"
-                  }
-                }
-              }
-            ],
-            "dnsSettings": {
-              "dnsServers": [ "10.0.2.10" ]
-            }
-          }
-        },
-        {
-          "apiVersion": "2015-06-15",
-          "type": "Microsoft.Compute/virtualMachines",
-          "name": "[concat(variables('vmNamePrefix'), copyindex())]",
-          "copy": {
-            "count": "[parameters('numberOfInstances')]",
-            "name": "virtualMachineLoop"
-          },
-          "location": "[resourceGroup().location]",
-          "tags": {
-            "displayName": "VirtualMachines",
-            "priority": "[variables('VMPriority')]"
-          },
-          "dependsOn": [
-            "[concat('Microsoft.Storage/storageAccounts/', variables('vhdStorageName'))]",
-            "nicLoop"
-          ],
-          "properties": {
-            "hardwareProfile": {
-              "vmSize": "[parameters('vmSize')]"
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "[variables('imagePublisher')]",
+              "offer": "[variables('imageOffer')]",
+              "sku": "[parameters('imageSKU')]",
+              "version": "latest"
             },
-            "osProfile": {
-              "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
-              "adminUsername": "[parameters('adminUsername')]",
-              "adminPassword": "[parameters('adminPassword')]"
-            },
-            "storageProfile": {
-              "imageReference": {
-                "publisher": "[variables('imagePublisher')]",
-                "offer": "[variables('imageOffer')]",
-                "sku": "[parameters('imageSKU')]",
-                "version": "latest"
+            "osDisk": {
+              "name": "osdisk",
+              "vhd": {
+                "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'osdisk', '.vhd')]"
               },
-              "osDisk": {
-                "name": "osdisk",
+              "caching": "ReadWrite",
+              "createOption": "FromImage"
+            },
+            "dataDisks": [
+              {
+                "name": "datadisk",
                 "vhd": {
-                  "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'osdisk', '.vhd')]"
+                  "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'datadisk', '.vhd')]"
                 },
-                "caching": "ReadWrite",
-                "createOption": "FromImage"
+                "lun": 0,
+                "diskSizeGB": "100",
+                "createOption": "Empty",
+                "caching": "ReadWrite"
+              }
+            ]
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex()))]"
+              }
+            ]
+          },
+          "diagnosticsProfile": {
+            "bootDiagnostics": {
+              "enabled": true,
+              "storageUri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net')]"
+            }
+          }
+        },
+        "resources": [
+          {
+            "name": "Microsoft.EnterpriseCloud.Monitoring",
+            "type": "extensions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            ],
+            "tags": {
+              "displayName": "MMA"
+            },
+            "properties": {
+              "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+              "type": "MicrosoftMonitoringAgent",
+              "typeHandlerVersion": "1.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "workspaceId": "[parameters('workspaceId')]"
               },
-              "dataDisks": [
-                {
-                  "name": "datadisk",
-                  "vhd": {
-                    "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'datadisk', '.vhd')]"
-                  },
-                  "lun": 0,
-                  "diskSizeGB": "100",
-                  "createOption": "Empty",
-                  "caching": "ReadWrite"
-                }
-              ]
-            },
-            "networkProfile": {
-              "networkInterfaces": [
-                {
-                  "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex()))]"
-                }
-              ]
-            },
-            "diagnosticsProfile": {
-              "bootDiagnostics": {
-                "enabled": true,
-                "storageUri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net')]"
+              "protectedSettings": {
+                "workspaceKey": "[parameters('workspaceKey')]"
               }
             }
           },
-          "resources": [
-            {
-              "name": "Microsoft.EnterpriseCloud.Monitoring",
-              "type": "extensions",
-              "location": "[resourceGroup().location]",
-              "apiVersion": "2015-06-15",
-              "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
-              ],
-              "tags": {
-                "displayName": "MMA"
+          {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "joindomain",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            ],
+            "properties": {
+              "publisher": "Microsoft.Compute",
+              "type": "JsonADDomainExtension",
+              "typeHandlerVersion": "1.3",
+              "settings": {
+                "Name": "[parameters('domainToJoin')]",
+                "Options": "[parameters('domainJoinOptions')]",
+                "OUPath": "[parameters('ouPath')]",
+                "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
+                "Restart": "true",
+                "Options": "[parameters('domainJoinOptions')]"
               },
-              "properties": {
-                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
-                "type": "MicrosoftMonitoringAgent",
-                "typeHandlerVersion": "1.0",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                  "workspaceId": "[parameters('workspaceId')]"
-                },
-                "protectedSettings": {
-                  "workspaceKey": "[parameters('workspaceKey')]"
-                }
-              }
-            },
-            {
-              "apiVersion": "2015-06-15",
-              "type": "extensions",
-              "name": "joindomain",
-              "location": "[resourceGroup().location]",
-              "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
-              ],
-              "properties": {
-                "publisher": "Microsoft.Compute",
-                "type": "JsonADDomainExtension",
-                "typeHandlerVersion": "1.0",
-                "settings": {
-                  "Name": "[parameters('domainToJoin')]",
-                  "Options": "[parameters('domainJoinOptions')]",
-                  "OUPath": "[parameters('ouPath')]",
-                  "Restart": "true",
-                  "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]"
-                },
-                "protectedsettings": {
-                  "Password": "[parameters('domainPassword')]"
-                }
-              }
-            },
-            {
-              "type": "extensions",
-              "name": "Microsot.PowerShell.DSC",
-              "apiVersion": "2015-06-15",
-              "location": "[resourceGroup().location]",
-              "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
-              ],
-              "properties": {
-                "type": "DSC",
-                "publisher": "Microsoft.Powershell",
-                "typeHandlerVersion": "2.13",
-                "autoUpgradeMinorVersion": true,
-                "protectedSettings": {
-                  "Items": {
-                    "registrationKeyPrivate": "[parameters('registrationKey')]"
-                  }
-                },
-                "settings": {
-                  "ModulesUrl": "[parameters('modulesUrl')]",
-                  "SasToken": "",
-                  "ConfigurationFunction": "[parameters('configurationFunction')]",
-                  "Properties": [
-                    {
-                      "Name": "RegistrationKey",
-                      "Value": {
-                        "UserName": "",
-                        "Password": "PrivateSettingsRef:registrationKeyPrivate"
-                      },
-                      "TypeName": "System.Management.Automation.PSCredential"
-                    },
-                    {
-                      "Name": "RegistrationUrl",
-                      "Value": "[parameters('registrationUrl')]",
-                      "TypeName": "System.String"
-                    },
-                    {
-                      "Name": "NodeConfigurationName",
-                      "Value": "[parameters('nodeConfigurationName')]",
-                      "TypeName": "System.String"
-                    },
-                    {
-                      "Name": "ConfigurationMode",
-                      "Value": "[parameters('configurationMode')]",
-                      "TypeName": "System.String"
-                    },
-                    {
-                      "Name": "ConfigurationModeFrequencyMins",
-                      "Value": "[parameters('configurationModeFrequencyMins')]",
-                      "TypeName": "System.Int32"
-                    },
-                    {
-                      "Name": "RefreshFrequencyMins",
-                      "Value": "[parameters('refreshFrequencyMins')]",
-                      "TypeName": "System.Int32"
-                    },
-                    {
-                      "Name": "RebootNodeIfNeeded",
-                      "Value": "[parameters('rebootNodeIfNeeded')]",
-                      "TypeName": "System.Boolean"
-                    },
-                    {
-                      "Name": "ActionAfterReboot",
-                      "Value": "[parameters('actionAfterReboot')]",
-                      "TypeName": "System.String"
-                    },
-                    {
-                      "Name": "AllowModuleOverwrite",
-                      "Value": "[parameters('allowModuleOverwrite')]",
-                      "TypeName": "System.Boolean"
-                    },
-                    {
-                      "Name": "Timestamp",
-                      "Value": "[parameters('timestamp')]",
-                      "TypeName": "System.String"
-                    }
-                  ]
-                }
+              "protectedsettings": {
+                "Password": "[parameters('domainPassword')]"
               }
             }
-          ]
-        }
-      ]
-    }
+          },
+          {
+            "type": "extensions",
+            "name": "Microsot.PowerShell.DSC",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            ],
+            "properties": {
+              "type": "DSC",
+              "publisher": "Microsoft.Powershell",
+              "typeHandlerVersion": "2.13",
+              "autoUpgradeMinorVersion": true,
+              "protectedSettings": {
+                "Items": {
+                  "registrationKeyPrivate": "[parameters('registrationKey')]"
+                }
+              },
+              "settings": {
+                "ModulesUrl": "[parameters('modulesUrl')]",
+                "SasToken": "",
+                "ConfigurationFunction": "[parameters('configurationFunction')]",
+                "Properties": [
+                  {
+                    "Name": "RegistrationKey",
+                    "Value": {
+                      "UserName": "",
+                      "Password": "PrivateSettingsRef:registrationKeyPrivate"
+                    },
+                    "TypeName": "System.Management.Automation.PSCredential"
+                  },
+                  {
+                    "Name": "RegistrationUrl",
+                    "Value": "[parameters('registrationUrl')]",
+                    "TypeName": "System.String"
+                  },
+                  {
+                    "Name": "NodeConfigurationName",
+                    "Value": "[parameters('nodeConfigurationName')]",
+                    "TypeName": "System.String"
+                  },
+                  {
+                    "Name": "ConfigurationMode",
+                    "Value": "[parameters('configurationMode')]",
+                    "TypeName": "System.String"
+                  },
+                  {
+                    "Name": "ConfigurationModeFrequencyMins",
+                    "Value": "[parameters('configurationModeFrequencyMins')]",
+                    "TypeName": "System.Int32"
+                  },
+                  {
+                    "Name": "RefreshFrequencyMins",
+                    "Value": "[parameters('refreshFrequencyMins')]",
+                    "TypeName": "System.Int32"
+                  },
+                  {
+                    "Name": "RebootNodeIfNeeded",
+                    "Value": "[parameters('rebootNodeIfNeeded')]",
+                    "TypeName": "System.Boolean"
+                  },
+                  {
+                    "Name": "ActionAfterReboot",
+                    "Value": "[parameters('actionAfterReboot')]",
+                    "TypeName": "System.String"
+                  },
+                  {
+                    "Name": "AllowModuleOverwrite",
+                    "Value": "[parameters('allowModuleOverwrite')]",
+                    "TypeName": "System.Boolean"
+                  },
+                  {
+                    "Name": "Timestamp",
+                    "Value": "[parameters('timestamp')]",
+                    "TypeName": "System.String"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
