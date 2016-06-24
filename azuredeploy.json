@@ -386,7 +386,7 @@
           {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()),'joindomain')]",
+            "name": "DomainJoinExtension",
             "location": "[resourceGroup().location]",
             "dependsOn": [
               "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
@@ -418,7 +418,7 @@
             "properties": {
               "type": "DSC",
               "publisher": "Microsoft.Powershell",
-              "typeHandlerVersion": "2.13",
+              "typeHandlerVersion": "2.15",
               "autoUpgradeMinorVersion": true,
               "protectedSettings": {
                 "Items": {
@@ -433,7 +433,7 @@
                   {
                     "Name": "RegistrationKey",
                     "Value": {
-                      "UserName": "",
+                      "UserName": "PLACEHOLDER_DONOTUSE",
                       "Password": "PrivateSettingsRef:registrationKeyPrivate"
                     },
                     "TypeName": "System.Management.Automation.PSCredential"
