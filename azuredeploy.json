@@ -386,7 +386,7 @@
           {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "joindomain",
+            "name": "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()),'joindomain')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
               "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
@@ -400,8 +400,7 @@
                 "Options": "[parameters('domainJoinOptions')]",
                 "OUPath": "[parameters('ouPath')]",
                 "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
-                "Restart": "true",
-                "Options": "[parameters('domainJoinOptions')]"
+                "Restart": "true"
               },
               "protectedsettings": {
                 "Password": "[parameters('domainPassword')]"
