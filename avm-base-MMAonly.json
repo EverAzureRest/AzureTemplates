@@ -148,7 +148,6 @@
         "priority": "[variables('VMPriority')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('vhdStorageName'))]",
         "nicLoop"
       ],
       "properties": {
