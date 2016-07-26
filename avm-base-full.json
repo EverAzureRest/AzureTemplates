@@ -345,30 +345,6 @@
           }
         },
         {
-          "apiVersion": "2015-06-15",
-          "type": "extensions",
-          "name": "DomainJoinExtension",
-          "location": "[resourceGroup().location]",
-          "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
-          ],
-          "properties": {
-            "publisher": "Microsoft.Compute",
-            "type": "JsonADDomainExtension",
-            "typeHandlerVersion": "1.3",
-            "settings": {
-              "Name": "[parameters('domainToJoin')]",
-              "Options": "[parameters('domainJoinOptions')]",
-              "OUPath": "[parameters('ouPath')]",
-              "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
-              "Restart": "true"
-            },
-            "protectedsettings": {
-              "Password": "[parameters('domainPassword')]"
-            }
-          }
-        },
-        {
           "type": "extensions",
           "name": "Microsot.PowerShell.DSC",
           "apiVersion": "2015-06-15",
@@ -445,6 +421,30 @@
                   "TypeName": "System.String"
                 }
               ]
+            }
+          }
+        },
+        {
+          "apiVersion": "2015-06-15",
+          "type": "extensions",
+          "name": "DomainJoinExtension",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "JsonADDomainExtension",
+            "typeHandlerVersion": "1.3",
+            "settings": {
+              "Name": "[parameters('domainToJoin')]",
+              "Options": "[parameters('domainJoinOptions')]",
+              "OUPath": "[parameters('ouPath')]",
+              "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
+              "Restart": "true"
+            },
+            "protectedsettings": {
+              "Password": "[parameters('domainPassword')]"
             }
           }
         }
