@@ -81,6 +81,10 @@
       "metadata": {
         "description": "Parameter for the VM Priority Tag"
       }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "ProdVnet"
     }
   },
   "variables": {
@@ -88,7 +92,7 @@
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
     "vhdStorageName": "eus2jorsmith",
-    "virtualNetworkName": "ProdVnet",
+    "virtualNetworkName": "[parameters('virtualNetworkName')]",
     "vnetId": "[resourceid('EastUS2-NW', 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "virtualNetworkSubnetName": "default",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
