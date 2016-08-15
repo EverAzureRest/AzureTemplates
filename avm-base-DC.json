@@ -74,7 +74,7 @@
     },
     "vmPriority": {
       "type": "string",
-      "defaultValue": "9",
+      "defaultValue": "0",
       "metadata": {
         "description": "Parameter for the VM Priority Tag"
       }
