@@ -439,7 +439,7 @@
         {
           "apiVersion": "2015-06-15",
           "type": "extensions",
-          "name": "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()), '/domainjoin')]",
+          "name": "DomainJoin",
           "location": "[resourceGroup().location]",
           "dependsOn": [
             "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
