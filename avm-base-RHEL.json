@@ -15,7 +15,7 @@
         "description": "Admin password"
       }
     },
-    "imageSKU": {
+    "rhelOSVersion": {
       "type": "string",
       "defaultValue": "7.2",
       "allowedValues": [
@@ -172,7 +172,7 @@
           "imageReference": {
             "publisher": "[variables('imagePublisher')]",
             "offer": "[variables('imageOffer')]",
-            "sku": "[parameters('imageSKU')]",
+            "sku": "[parameters('rhelOSVersion')]",
             "version": "latest"
           },
           "osDisk": {
