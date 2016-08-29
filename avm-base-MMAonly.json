@@ -93,16 +93,28 @@
       "metadata": {
         "description": "The Workspace Key is the Operations Management Suite Workspace Key found in the OMS Console under Settings and Connected Sources"
       }
+    },
+    "virtualNetworkName": {
+      "type": "string"
+    },
+    "virtualNetworkResourceGroup": {
+      "type": "string"
+    },
+    "subnetName": {
+      "type": "string"
+    },
+    "storageAccountName": {
+      "type": "string"
     }
   },
   "variables": {
     "vmNamePrefix": "[parameters('vmNamePrefix')]",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
-    "vhdStorageName": "eus2jorsmith",
-    "virtualNetworkName": "ProdVnet",
-    "vnetId": "[resourceid('EastUS2-NW', 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-    "virtualNetworkSubnetName": "default",
+    "vhdStorageName": "[parameters('storageAccountName')]",
+    "virtualNetworkName": "[parameters('virtualNetworkName')]",
+    "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "virtualNetworkSubnetName": "[parameters('subnetName')]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
     "networkInterfaceNamePrefix": "VNic",
     "VMPriority": "[parameters('vmPriority')]"
