@@ -150,7 +150,7 @@
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
     "vhdStorageName": "[parameters('storageAccountName')]",
-    "premiumStorageName": "[parameters('premiumStorageAccountName')",
+    "premiumStorageName": "[parameters('premiumStorageAccountName')]",
     "virtualNetworkName": "[parameters('virtualNetworkName')]",
     "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "virtualNetworkSubnetName": "[parameters('subnetName')]",
