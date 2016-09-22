@@ -238,7 +238,7 @@
             {
               "name": "SQLData",
               "vhd": {
-                "uri": "[concat('http://', variables('premiumStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'TempDB', '.vhd')]"
+                "uri": "[concat('http://', variables('premiumStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'DataDisk', '.vhd')]"
               },
               "lun": 1,
               "diskSizeGB": "100",
