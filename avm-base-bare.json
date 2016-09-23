@@ -97,7 +97,7 @@
     "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "virtualNetworkSubnetName": "[parameters('subnetName')]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
-    "networkInterfaceNamePrefix": "VNic",
+    "networkInterfaceNamePrefix": "VNic"
   },
   "resources": [
     {
