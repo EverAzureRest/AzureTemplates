@@ -294,8 +294,7 @@
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
-            "enabled": true,
-            "storageUri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net')]"
+            "enabled": false
           }
         }
       },
