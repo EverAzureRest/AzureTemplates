@@ -274,19 +274,19 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "[concat(variables('vmNamePrefix'), copyIndex()), -osdisk]",
+            "name": "[concat(variables('vmNamePrefix'), copyIndex(), -osdisk)]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "name": "[concat(variables('vmNamePrefix'), copyIndex()), -tempdb]",
+              "name": "[concat(variables('vmNamePrefix'), copyIndex(), -tempdb)]",
               "lun": 0,
               "diskSizeGB": "50",
               "createOption": "Empty"
             },
             {
-              "name": "[concat(variables('vmNamePrefix'), copyIndex()), SQLData]",
+              "name": "[concat(variables('vmNamePrefix'), copyIndex(), -SQLData)]",
               "lun": 1,
               "diskSizeGB": "100",
               "createOption": "Empty"
