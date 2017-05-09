@@ -242,7 +242,7 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2016-04-30-preview",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('vmNamePrefix'), copyindex())]",
       "copy": {
@@ -275,27 +275,18 @@
           },
           "osDisk": {
             "name": "osdisk",
-            "vhd": {
-              "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'osdisk', '.vhd')]"
-            },
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
               "name": "tempdb",
-              "vhd": {
-                "uri": "[concat('http://', variables('premiumStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'TempDB', '.vhd')]"
-              },
               "lun": 0,
               "diskSizeGB": "50",
               "createOption": "Empty"
             },
             {
               "name": "SQLData",
-              "vhd": {
-                "uri": "[concat('http://', variables('premiumStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'TempDB', '.vhd')]"
-              },
               "lun": 1,
               "diskSizeGB": "100",
               "createOption": "Empty"
