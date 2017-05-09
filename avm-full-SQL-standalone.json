@@ -274,19 +274,19 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "osdisk",
+            "name": "[concat(variables('vmNamePrefix'), copyIndex()), -osdisk]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "name": "tempdb",
+              "name": "[concat(variables('vmNamePrefix'), copyIndex()), -tempdb]",
               "lun": 0,
               "diskSizeGB": "50",
               "createOption": "Empty"
             },
             {
-              "name": "SQLData",
+              "name": "[concat(variables('vmNamePrefix'), copyIndex()), SQLData]",
               "lun": 1,
               "diskSizeGB": "100",
               "createOption": "Empty"
