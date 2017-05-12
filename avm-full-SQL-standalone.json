@@ -274,13 +274,13 @@
             {
               "name": "[concat(variables('vmNamePrefix'), copyIndex(), 'tempdb')]",
               "lun": 0,
-              "diskSizeGB": "50",
+              "diskSizeGB": 50,
               "createOption": "Empty"
             },
             {
               "name": "[concat(variables('vmNamePrefix'), copyIndex(), 'SQLData')]",
               "lun": 1,
-              "diskSizeGB": "100",
+              "diskSizeGB": 100,
               "createOption": "Empty"
             }
           ]
@@ -303,7 +303,7 @@
           "name": "Microsoft.EnterpriseCloud.Monitoring",
           "type": "extensions",
           "location": "[resourceGroup().location]",
-          "apiVersion": "2015-06-15",
+          "apiVersion": "2016-04-30-preview",
           "dependsOn": [
             "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
           ],
@@ -316,17 +316,17 @@
             "typeHandlerVersion": "1.0",
             "autoUpgradeMinorVersion": true,
             "settings": {
-              "workspaceId": "[parameters('workspaceId')]"
+              "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
             },
             "protectedSettings": {
-              "workspaceKey": "[parameters('workspaceKey')]"
+              "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
             }
           }
         },
         {
           "type": "extensions",
           "name": "Microsot.PowerShell.DSC",
-          "apiVersion": "2015-06-15",
+          "apiVersion": "2016-04-30-preview",
           "location": "[resourceGroup().location]",
           "dependsOn": [
             "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
@@ -334,7 +334,7 @@
           "properties": {
             "type": "DSC",
             "publisher": "Microsoft.Powershell",
-            "typeHandlerVersion": "2.15",
+            "typeHandlerVersion": "2.19",
             "autoUpgradeMinorVersion": true,
             "protectedSettings": {
               "Items": {
