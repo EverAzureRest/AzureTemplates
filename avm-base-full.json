@@ -282,13 +282,13 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "osdisk",
+            "name": "[concat(parameters('vmNamePrefix'), copyIndex(), 'osdisk')]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "name": "datadisk",
+              "name": "[concat(parameters('vmNamePrefix'), copyIndex(), 'datadisk')]",
               "lun": 0,
               "diskSizeGB": 100,
               "createOption": "Empty",
