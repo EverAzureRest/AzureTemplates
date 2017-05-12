@@ -81,6 +81,12 @@
       "description": "The OMS Workspace Name to join the Monitoring Agent to"
     }
   },
+  "workspaceKey":{
+    "type": "securestring",
+    "metadata": {
+      "description": "OMS Workspace Key"
+    }
+  },
       "modulesUrl": {
             "type": "string",
             "defaultValue": "https://github.com/Azure/azure-quickstart-templates/raw/master/dsc-extension-azure-automation-pullserver/UpdateLCMforAAPull.zip",
@@ -287,10 +293,10 @@
             "typeHandlerVersion": "1.0",
             "autoUpgradeMinorVersion": true,
             "settings": {
-			  "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
+			  "workspaceId": "[parameters('workspaceID')"
             },
             "protectedSettings": {
-			  "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
+			  "workspaceKey": "[parameters('workspaceKey')]"
             }
           }
         },
