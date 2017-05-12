@@ -75,10 +75,10 @@
         "description": "String to prefix the generation of the VM Name"
       }
     },
-    "workspaceName":{
+    "workspaceID":{
     "type": "string",
     "metadata": {
-      "description": "The OMS Workspace Name to join the Monitoring Agent to"
+      "description": "The OMS Workspace Id to join the Monitoring Agent to"
     }
   },
   "workspaceKey":{
