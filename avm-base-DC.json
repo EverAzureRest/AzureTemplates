@@ -82,7 +82,7 @@
     }
   },
   "workspaceKey":{
-    "type": "securestring",
+    "type": "string",
     "metadata": {
       "description": "OMS Workspace Key"
     }
