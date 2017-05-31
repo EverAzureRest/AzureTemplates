@@ -84,18 +84,6 @@
         "description": "Parameter for the VM Priority Tag"
       }
     },
-    "workspaceId": {
-      "type": "string",
-      "metadata": {
-        "description": "The Workspace ID is the Operations Management Suite Workspace ID found in the OMS Console under Settings and Connected Sources"
-      }
-    },
-    "workspaceKey": {
-      "type": "string",
-      "metadata": {
-        "description": "The Workspace Key is the Operations Management Suite Workspace Key found in the OMS Console under Settings and Connected Sources"
-      }
-    },
     "modulesUrl": {
       "type": "string",
       "defaultValue": "https://github.com/Azure/azure-quickstart-templates/raw/master/dsc-extension-azure-automation-pullserver/UpdateLCMforAAPull.zip",
@@ -196,21 +184,17 @@
     }
   },
   "variables": {
-    "vmNamePrefix": "[parameters('vmNamePrefix')]",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
-    "virtualNetworkName": "[parameters('virtualNetworkName')]",
-    "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-    "virtualNetworkSubnetName": "[parameters('subnetName')]",
-    "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
-    "networkInterfaceNamePrefix": "VNic",
-    "VMPriority": "[parameters('vmPriority')]"
+    "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+    "networkInterfaceNamePrefix": "VNic"
   },
   "resources": [
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex())]",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex(), variables('networkInterfaceNamePrefix'))]",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "NetworkInterface"
@@ -222,7 +206,7 @@
       "properties": {
         "ipConfigurations": [
           {
-            "name": "[concat(variables('vmNamePrefix'), 'ipconfig', copyindex())]",
+            "name": "[concat(parameters('vmNamePrefix'), copyindex(), 'ipconfig')]",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
@@ -236,15 +220,14 @@
     {
       "apiVersion": "2016-04-30-preview",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(variables('vmNamePrefix'), copyindex())]",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex())]",
       "copy": {
         "count": "[parameters('numberOfInstances')]",
         "name": "virtualMachineLoop"
       },
       "location": "[resourceGroup().location]",
       "tags": {
-        "displayName": "VirtualMachines",
-        "priority": "[variables('VMPriority')]"
+        "displayName": "VirtualMachines"
       },
       "dependsOn": [
         "nicLoop"
@@ -254,7 +237,7 @@
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
+          "computerName": "[concat(parameters('vmNamePrefix'), copyIndex())]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
@@ -266,19 +249,19 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "[concat(variables('vmNamePrefix'), copyIndex(), 'osdisk')]",
+            "name": "[concat(parameters('vmNamePrefix'), copyIndex(), 'osdisk')]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "name": "[concat(variables('vmNamePrefix'), copyIndex(), 'tempdb')]",
+              "name": "[concat(parameters('vmNamePrefix'), copyIndex(), 'tempdb')]",
               "lun": 0,
               "diskSizeGB": 50,
               "createOption": "Empty"
             },
             {
-              "name": "[concat(variables('vmNamePrefix'), copyIndex(), 'SQLData')]",
+              "name": "[concat(parameters('vmNamePrefix'), copyIndex(), 'SQLData')]",
               "lun": 1,
               "diskSizeGB": 100,
               "createOption": "Empty"
@@ -288,7 +271,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('vmNamePrefix'), copyindex(), variables('networkInterfaceNamePrefix')))]"
             }
           ]
         },
@@ -300,36 +283,12 @@
       },
       "resources": [
         {
-          "name": "Microsoft.EnterpriseCloud.Monitoring",
-          "type": "extensions",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2016-04-30-preview",
-          "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
-          ],
-          "tags": {
-            "displayName": "MMA"
-          },
-          "properties": {
-            "publisher": "Microsoft.EnterpriseCloud.Monitoring",
-            "type": "MicrosoftMonitoringAgent",
-            "typeHandlerVersion": "1.0",
-            "autoUpgradeMinorVersion": true,
-            "settings": {
-              "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').customerId]"
-            },
-            "protectedSettings": {
-              "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('workspaceName')), '2015-03-20').primarySharedKey]"
-            }
-          }
-        },
-        {
           "type": "extensions",
           "name": "Microsot.PowerShell.DSC",
           "apiVersion": "2016-04-30-preview",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), copyindex()))]"
           ],
           "properties": {
             "type": "DSC",
