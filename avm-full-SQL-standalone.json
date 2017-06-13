@@ -77,13 +77,6 @@
         "description": "String to prefix the generation of the VM Name"
       }
     },
-    "vmPriority": {
-      "type": "string",
-      "defaultValue": "9",
-      "metadata": {
-        "description": "Parameter for the VM Priority Tag"
-      }
-    },
     "modulesUrl": {
       "type": "string",
       "defaultValue": "https://github.com/Azure/azure-quickstart-templates/raw/master/dsc-extension-azure-automation-pullserver/UpdateLCMforAAPull.zip",
