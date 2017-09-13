@@ -223,31 +223,25 @@
     "subnetName": {
       "type": "string"
     },
-    "storageAccountName": {
-      "type": "string"
+    "tempDBsizeInGB": {
+      "type": "int"
     },
-    "premiumStorageAccountName": {
-      "type": "string"
+    "dataDiskSizeInGB": {
+      "type": "int"
     }
   },
   "variables": {
-    "vmNamePrefix": "[parameters('vmNamePrefix')]",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
-    "vhdStorageName": "[parameters('storageAccountName')]",
-    "premiumStorageName": "[parameters('premiumStorageAccountName')",
-    "virtualNetworkName": "[parameters('virtualNetworkName')]",
-    "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-    "virtualNetworkSubnetName": "[parameters('subnetName')]",
-    "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
-    "networkInterfaceNamePrefix": "VNic",
-    "VMPriority": "[parameters('vmPriority')]"
+    "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+    "networkInterfaceNamePrefix": "VNic"
   },
   "resources": [
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex())]",
+      "name": "[concat(parameters('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex())]",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "NetworkInterface"
@@ -259,7 +253,7 @@
       "properties": {
         "ipConfigurations": [
           {
-            "name": "[concat(variables('vmNamePrefix'), 'ipconfig', copyindex())]",
+            "name": "[concat(parameters('vmNamePrefix'), copyindex() 'ipconfig')]",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
@@ -271,17 +265,16 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2016-04-30-preview",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(variables('vmNamePrefix'), copyindex())]",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex())]",
       "copy": {
         "count": "[parameters('numberOfInstances')]",
         "name": "virtualMachineLoop"
       },
       "location": "[resourceGroup().location]",
       "tags": {
-        "displayName": "VirtualMachines",
-        "priority": "[variables('VMPriority')]"
+        "displayName": "VirtualMachines"
       },
       "dependsOn": [
         "nicLoop"
@@ -291,7 +284,7 @@
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
+          "computerName": "[concat(parameters('vmNamePrefix'), copyIndex())]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
@@ -303,31 +296,24 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "osdisk",
-            "vhd": {
-              "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'osdisk', '.vhd')]"
-            },
-            "caching": "ReadWrite",
+            "name": "[concat(parameters('vmNamePrefix'), copyIndex(), osDisk)]",
+            "caching": "ReadOnly",
             "createOption": "FromImage"
           },
           "dataDisks": [
             {
-              "name": "tempdb",
-              "vhd": {
-                "uri": "[concat('http://', variables('premiumStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'TempDB', '.vhd')]"
-              },
+              "name": "[concat(parameters('vmNamePrefix'), copyIndex(), tempDB)]",
               "lun": 0,
-              "diskSizeGB": "50",
-              "createOption": "Empty"
+              "diskSizeGB": "[parameters('tempDBsizeInGB']",
+              "createOption": "Empty",
+              "storageType": "Premium"
             },
             {
-              "name": "SQLData",
-              "vhd": {
-                "uri": "[concat('http://', variables('premiumStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'TempDB', '.vhd')]"
-              },
+              "name": "[concat(parameters('vmNamePrefix'), copyIndex(), SQLData)]",
               "lun": 1,
               "diskSizeGB": "100",
-              "createOption": "Empty"
+              "createOption": "Empty",
+              "storageType": "Premium"
             }
           ]
         },
@@ -340,8 +326,7 @@
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
-            "enabled": true,
-            "storageUri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net')]"
+            "enabled": false
           }
         }
       },
@@ -350,9 +335,9 @@
           "name": "Microsoft.EnterpriseCloud.Monitoring",
           "type": "extensions",
           "location": "[resourceGroup().location]",
-          "apiVersion": "2015-06-15",
+          "apiVersion": "2016-04-30-preview",
           "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), copyindex()))]"
           ],
           "tags": {
             "displayName": "MMA"
@@ -373,10 +358,10 @@
         {
           "type": "extensions",
           "name": "Microsot.PowerShell.DSC",
-          "apiVersion": "2015-06-15",
+          "apiVersion": "2016-04-30-preview",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), copyindex()))]"
           ],
           "properties": {
             "type": "DSC",
@@ -451,12 +436,12 @@
           }
         },
         {
-          "apiVersion": "2015-06-15",
+          "apiVersion": "2016-04-30-preview",
           "type": "extensions",
           "name": "DomainJoinExtension",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), copyindex()))]"
           ],
           "properties": {
             "publisher": "Microsoft.Compute",
