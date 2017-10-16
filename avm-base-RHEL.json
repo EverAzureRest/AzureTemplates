@@ -9,12 +9,19 @@
         "description": "Admin username"
       }
     },
-    "adminPassword": {
-      "type": "securestring",
+    "sshRSAPath": {
+      "type": "string",
+      "defaultValue": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
       "metadata": {
-        "description": "Admin password"
-      }
-    },
+          "description": "Path to the RSA public key for SSH"
+          }
+      },
+      "sshRSAPublicKey": {
+        "type": "string",
+        "metadata": {
+          "description": "PEM-encoded public key"
+          }
+      },
     "rhelOSVersion": {
       "type": "string",
       "defaultValue": "7.2",
@@ -29,29 +36,10 @@
     "vmSize": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "Standard_D1",
+      "defaultValue": "Standard_DS1_v1",
       "allowedValues": [
-        "Basic_A0",
-        "Basic_A1",
-        "Basic_A2",
-        "Basic_A3",
-        "Basic_A4",
-        "Standard_A0",
-        "Standard_A1",
-        "Standard_A2",
-        "Standard_A3",
-        "Standard_A4",
-        "Standard_A5",
-        "Standard_A6",
-        "Standard_A7",
-        "Standard_D1",
-        "Standard_D2",
-        "Standard_D3",
-        "Standard_D4",
-        "Standard_D11",
-        "Standard_D12",
-        "Standard_D13",
-        "Standard_D14"
+        "Standard_DS1_v1",
+        "Standard_A1_v2"
       ],
       "metadata": {
         "description": "Size of the virtual machine, must be available in the virtual machine's location"
@@ -70,13 +58,6 @@
       "type": "string",
       "metadata": {
         "description": "String to prefix the generation of the VM Name"
-      }
-    },
-    "vmPriority": {
-      "type": "string",
-      "defaultValue": "9",
-      "metadata": {
-        "description": "Parameter for the VM Priority Tag"
       }
     },
     "workspaceId": {
@@ -99,28 +80,20 @@
     },
     "subnetName": {
       "type": "string"
-    },
-    "storageAccountName": {
-      "type": "string"
     }
   },
   "variables": {
-    "vmNamePrefix": "[parameters('vmNamePrefix')]",
     "imagePublisher": "RedHat",
     "imageOffer": "RHEL",
-    "vhdStorageName": "[parameters('storageAccountName')]",
-    "virtualNetworkName": "[parameters('virtualNetworkName')]",
-    "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-    "virtualNetworkSubnetName": "[parameters('subnetName')]",
-    "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('virtualNetworkSubnetName'))]",
-    "networkInterfaceNamePrefix": "VNic",
-    "VMPriority": "[parameters('vmPriority')]"
+    "vnetId": "[resourceid(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+    "networkInterfaceNamePrefix": "VNic"
   },
   "resources": [
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2017-06-01",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex())]",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex(), variables('networkInterfaceNamePrefix'))]",
       "location": "[resourceGroup().location]",
       "tags": {
         "displayName": "NetworkInterface"
@@ -132,7 +105,7 @@
       "properties": {
         "ipConfigurations": [
           {
-            "name": "[concat(variables('vmNamePrefix'), 'ipconfig', copyindex())]",
+            "name": "[concat(parameters('vmNamePrefix'), 'ipconfig', copyindex())]",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
@@ -144,17 +117,16 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "2017-03-30",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(variables('vmNamePrefix'), copyindex())]",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex())]",
       "copy": {
         "count": "[parameters('numberOfInstances')]",
         "name": "virtualMachineLoop"
       },
       "location": "[resourceGroup().location]",
       "tags": {
-        "displayName": "VirtualMachines",
-        "priority": "[variables('VMPriority')]"
+        "displayName": "[concat(parameters('vmNamePrefix'), copyIndex())]"
       },
       "dependsOn": [
         "nicLoop"
@@ -164,9 +136,18 @@
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
+          "computerName": "[concat(parameters('vmNamePrefix'), copyIndex())]",
           "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "linuxConfiguration": {
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[parameters('sshRSAPath')]",
+                  "keyData": "[parameters('sshRSAPublicKey')]"
+                }
+              ]
+            }
+          }
         },
         "storageProfile": {
           "imageReference": {
@@ -176,37 +157,21 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "osdisk",
-            "vhd": {
-              "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'osdisk', '.vhd')]"
-            },
+            "name": "[concat(parameters('vmNamePrefix'), copyIndex(), 'osdisk')]",
             "caching": "ReadWrite",
             "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "name": "datadisk",
-              "vhd": {
-                "uri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net/vhds/', variables('vmNamePrefix'), copyIndex(), 'datadisk', '.vhd')]"
-              },
-              "lun": 0,
-              "diskSizeGB": "100",
-              "createOption": "Empty",
-              "caching": "ReadWrite"
-            }
-          ]
+          }
         },
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('vmNamePrefix'), variables('networkInterfaceNamePrefix'), copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(parameters('vmNamePrefix'), copyindex(), variables('networkInterfaceNamePrefix')))]"
             }
           ]
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
-            "enabled": true,
-            "storageUri": "[concat('http://', variables('vhdStorageName'), '.blob.core.windows.net')]"
+            "enabled": false
           }
         }
       },
@@ -215,12 +180,12 @@
           "name": "Microsoft.EnterpriseCloud.Monitoring",
           "type": "extensions",
           "location": "[resourceGroup().location]",
-          "apiVersion": "2015-06-15",
+          "apiVersion": "2017-03-30",
           "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), copyindex()))]"
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmNamePrefix'), copyindex()))]"
           ],
           "tags": {
-            "displayName": "MMA"
+            "displayName": "Microsoft OMS Agent"
           },
           "properties": {
             "publisher": "Microsoft.EnterpriseCloud.Monitoring",
